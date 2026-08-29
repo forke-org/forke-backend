@@ -1,0 +1,29 @@
+# Binaries
+/bin/
+/api
+/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of coverage
+*.out
+
+# Go workspace
+go.work
+
+# Environment & Private Keys
+.env
+.env*.local
+!.env.example
+*.pem
+
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/

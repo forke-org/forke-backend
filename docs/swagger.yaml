@@ -1,0 +1,421 @@
+basePath: /api/v1
+definitions:
+  handlers.AdminStatsResponse:
+    properties:
+      pending_reports:
+        example: 4
+        type: integer
+      total_owners:
+        example: 85
+        type: integer
+      total_tasks:
+        example: 320
+        type: integer
+      total_users:
+        example: 1240
+        type: integer
+    type: object
+  handlers.BlogItem:
+    properties:
+      author_name:
+        example: Ayushman
+        type: string
+      content_html:
+        type: string
+      cover_image:
+        example: https://cdn.forke.space/covers/hero.png
+        type: string
+      created_at:
+        type: string
+      excerpt:
+        example: A developer marketplace reimagined
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      published_at:
+        type: string
+      reading_minutes:
+        example: 3
+        type: integer
+      slug:
+        example: introducing-forke
+        type: string
+      title:
+        example: Introducing Forke Developer Cloud
+        type: string
+      views:
+        example: 142
+        type: integer
+    type: object
+  handlers.CreateTaskRequest:
+    properties:
+      budget:
+        example: 8000
+        type: integer
+      currency:
+        example: INR
+        type: string
+      description:
+        example: Implement hero section with Tailwind CSS
+        type: string
+      title:
+        example: Build landing page component
+        type: string
+    type: object
+  handlers.HealthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      name:
+        example: Ayushman
+        type: string
+      password:
+        example: secret123
+        type: string
+      role:
+        description: developer | owner
+        example: developer
+        type: string
+      username:
+        example: ayushman
+        type: string
+    type: object
+  handlers.TaskItem:
+    properties:
+      budget:
+        example: 5000
+        type: integer
+      claimant_id:
+        example: "null"
+        type: string
+      client_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      created_at:
+        type: string
+      currency:
+        example: INR
+        type: string
+      description:
+        example: Refactor all any types to strict types
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      status:
+        example: open
+        type: string
+      title:
+        example: Fix TypeScript types
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@forke.space
+    name: Forke Support
+    url: https://forke.space
+  description: Forke Core Cloud Platform & Developer Sandbox Go API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://forke.space/terms
+  title: Forke Backend API
+  version: "1.0"
+paths:
+  /admin/stats:
+    get:
+      description: Get platform total users, tasks, and enquiries count
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AdminStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin Platform Statistics
+      tags:
+      - Admin
+  /admin/users:
+    get:
+      description: List latest 100 users for moderation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin Users List
+      tags:
+      - Admin
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate developer or owner with email and password
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User Login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      description: Invalidate session cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout User
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      description: Get current authenticated user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Current User
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new developer or owner account
+      parameters:
+      - description: Registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User Registration
+      tags:
+      - Auth
+  /blogs:
+    get:
+      description: Retrieve latest published blogs for marketing site
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List Published Blogs
+      tags:
+      - Blogs
+  /blogs/{slug}:
+    get:
+      description: Get blog article content by URL slug
+      parameters:
+      - description: Blog slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.BlogItem'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Blog by Slug
+      tags:
+      - Blogs
+  /health:
+    get:
+      description: Returns the health status of the backend API service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Health check
+      tags:
+      - System
+  /workspaces:
+    get:
+      description: Retrieve latest available tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List Tasks & Workspaces
+      tags:
+      - Workspaces
+    post:
+      consumes:
+      - application/json
+      description: Create a new bounty task
+      parameters:
+      - description: Task payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Task
+      tags:
+      - Workspaces
+  /workspaces/{id}:
+    get:
+      description: Get details of a single task
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TaskItem'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Task by ID
+      tags:
+      - Workspaces
+schemes:
+- http
+- https
+swagger: "2.0"
