@@ -1,0 +1,46 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Build ARM64 Linux Binary
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o forke-backend cmd/api/main.go
+
+      - name: Deploy Binary to Oracle VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 140.238.162.247
+          username: ubuntu
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          source: "forke-backend"
+          target: "/tmp"
+
+      - name: Restart forke-backend Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 140.238.162.247
+          username: ubuntu
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            sudo mv /tmp/forke-backend /opt/forke-backend/forke-backend
+            sudo chmod +x /opt/forke-backend/forke-backend
+            sudo systemctl restart forke-backend
+            sudo systemctl status forke-backend --no-pager
