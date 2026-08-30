@@ -14,12 +14,13 @@ import (
 )
 
 type Config struct {
-	Port         string
-	DatabaseURL  string
-	JWTSecret    string
-	CookieDomain string
-	CORSOrigins  []string
-	AppEnv       string
+	Port          string
+	DatabaseURL   string
+	JWTSecret     string
+	CookieDomain  string
+	CORSOrigins   []string
+	AppEnv        string
+	EnableSwagger bool
 }
 
 func Load() *Config {
@@ -30,6 +31,14 @@ func Load() *Config {
 	jwtSecret := getEnv("JWT_SECRET", "forke-super-secret-jwt-key-change-in-prod")
 	cookieDomain := getEnv("COOKIE_DOMAIN", ".forke.space")
 	appEnv := getEnv("APP_ENV", "development")
+	enableSwaggerStr := getEnv("ENABLE_SWAGGER", "")
+
+	enableSwagger := (appEnv != "production")
+	if enableSwaggerStr == "true" {
+		enableSwagger = true
+	} else if enableSwaggerStr == "false" {
+		enableSwagger = false
+	}
 
 	corsStr := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:3002,https://forke.space,https://dashboard.forke.space,https://admin.forke.space")
 	corsOrigins := strings.Split(corsStr, ",")
@@ -37,15 +46,16 @@ func Load() *Config {
 		corsOrigins[i] = strings.TrimSpace(corsOrigins[i])
 	}
 
-	log.Printf("[Config] Loaded environment: %s, Port: %s", appEnv, port)
+	log.Printf("[Config] Loaded environment: %s, Port: %s, Swagger: %v", appEnv, port, enableSwagger)
 
 	return &Config{
-		Port:         port,
-		DatabaseURL:  dbURL,
-		JWTSecret:    jwtSecret,
-		CookieDomain: cookieDomain,
-		CORSOrigins:  corsOrigins,
-		AppEnv:       appEnv,
+		Port:          port,
+		DatabaseURL:   dbURL,
+		JWTSecret:     jwtSecret,
+		CookieDomain:  cookieDomain,
+		CORSOrigins:   corsOrigins,
+		AppEnv:        appEnv,
+		EnableSwagger: enableSwagger,
 	}
 }
 

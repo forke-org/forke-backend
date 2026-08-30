@@ -69,30 +69,35 @@ func main() {
 
 	// Root & Health Endpoints
 	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
-		scheme := "https"
-		if req.TLS == nil && req.Header.Get("X-Forwarded-Proto") != "https" && (req.Host == "localhost:8080" || req.Host == "127.0.0.1:8080") {
-			scheme = "http"
-		}
-		host := req.Host
-		if host == "" {
-			host = "api.forke.space"
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		res := map[string]interface{}{
 			"service":   "Forke Core API",
 			"status":    "healthy",
 			"version":   "1.0.0",
-			"docs":      fmt.Sprintf("%s://%s/swagger/index.html", scheme, host),
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
-		})
+		}
+		if cfg.EnableSwagger {
+			scheme := "https"
+			if req.TLS == nil && req.Header.Get("X-Forwarded-Proto") != "https" && (req.Host == "localhost:8080" || req.Host == "127.0.0.1:8080") {
+				scheme = "http"
+			}
+			host := req.Host
+			if host == "" {
+				host = "api.forke.space"
+			}
+			res["docs"] = fmt.Sprintf("%s://%s/swagger/index.html", scheme, host)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(res)
 	})
 	r.Get("/health", handlers.HealthCheck)
 	r.Get("/api/v1/health", handlers.HealthCheck)
 
-	// Swagger Docs Endpoint
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"),
-	))
+	// Swagger Docs Endpoint (only mounted if EnableSwagger is true)
+	if cfg.EnableSwagger {
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"),
+		))
+	}
 
 	if db != nil {
 		authHandler := handlers.NewAuthHandler(db, cfg)
