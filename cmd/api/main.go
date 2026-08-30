@@ -15,9 +15,9 @@
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8080
+// @host api.forke.space
 // @BasePath /api/v1
-// @schemes http https
+// @schemes https http
 
 package main
 
@@ -68,14 +68,22 @@ func main() {
 	r.Use(middleware.CORS(cfg.CORSOrigins))
 
 	// Root & Health Endpoints
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
+		scheme := "https"
+		if req.TLS == nil && req.Header.Get("X-Forwarded-Proto") != "https" && (req.Host == "localhost:8080" || req.Host == "127.0.0.1:8080") {
+			scheme = "http"
+		}
+		host := req.Host
+		if host == "" {
+			host = "api.forke.space"
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"service":   "Forke Go Backend API",
-			"status":    "online",
+			"service":   "Forke Core API",
+			"status":    "healthy",
 			"version":   "1.0.0",
-			"swagger":   "http://localhost:8080/swagger/index.html",
-			"endpoints": []string{"/health", "/api/v1/auth", "/api/v1/workspaces", "/api/v1/blogs", "/api/v1/admin"},
+			"docs":      fmt.Sprintf("%s://%s/swagger/index.html", scheme, host),
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
 		})
 	})
 	r.Get("/health", handlers.HealthCheck)

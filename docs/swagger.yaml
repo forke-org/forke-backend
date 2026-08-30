@@ -131,7 +131,7 @@ definitions:
         example: Fix TypeScript types
         type: string
     type: object
-host: localhost:8080
+host: api.forke.space
 info:
   contact:
     email: support@forke.space
@@ -416,6 +416,6 @@ paths:
       tags:
       - Workspaces
 schemes:
-- http
 - https
+- http
 swagger: "2.0"
