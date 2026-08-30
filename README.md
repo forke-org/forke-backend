@@ -2,66 +2,147 @@
   <img src="./public/forke-assets/email-banners/main-banner.png" width="100%" alt="Forke Banner" />
 </p>
 
+# ⚙️ Forke Go Backend Engine
+
 <p align="center">
-  <i>No fake projects, no long commitments, just bite-sized work with instant UPI payouts.</i>
+  <i>High-performance, low-latency Go microservices API powering Forke's authentication, task orchestration, webhooks, and developer sandboxes.</i>
+</p>
+
+<p align="center">
+  <a href="https://www.forke.space/?source=github"><strong>Official Website</strong></a> ·
+  <a href="https://github.com/forke-org/.github"><strong>Org Profile</strong></a> ·
+  <a href="https://github.com/forke-org/forke-marketing"><strong>Marketing Repo</strong></a> ·
+  <a href="https://github.com/forke-org/forke-dashboard"><strong>Dashboard Repo</strong></a> ·
+  <a href="https://github.com/forke-org/forke-admin"><strong>Admin Repo</strong></a>
 </p>
 
 ---
 
-## 👋 Welcome to Forke!
+## 📖 Overview
 
-Building fake CRUD apps doesn't impress recruiters. On the other side, traditional freelancing platforms require overwhelming self-marketing, proposal bidding wars, and long timelines.
+`forke-backend` is the core backend engine for **Forke**, written in Go. Built with high concurrency and raw speed in mind, it handles task queues, JWT session verification across subdomains, escrow settlement hooks, automated test runs, and third-party webhooks.
 
-**Forke is the playground where skill meets real-world rewards.**
-
-We connect early-career developers and students with startups and indie founders who need small, highly-scoped tasks done—like fixing a bug, building a landing page section, or wiring up an API. 
-
-It's **Fiverr × GitHub × an RPG video game** — built for developers who want to earn, not just learn.
-
----
-
-## 🚀 For Developers: Ship Code, Level Up, Get Paid
-
-Forget dry resumes and competitive bidding wars. On Forke, your code does the talking.
-
-* 💰 **Earn Real Cash:** Solve actual, bite-sized tasks and get paid instantly to your UPI ID via a secure Razorpay escrow as soon as your work is approved.
-* 🎮 **RPG Progression System:** Every task you complete awards you XP. Climb the ranks from **Script Kiddie** to **Sprint Soldier**, all the way to **Forke Legend**, unlocking exclusive platform perks and higher-paying tasks along the way.
-* 📝 **Verified Proof of Work:** As you complete tasks, Forke automatically builds a gorgeous public developer portfolio for you. Every contribution is verified, timestamped, and linked directly to your GitHub commits so recruiters know your skills are 100% real.
+### ✨ Key Features
+* ⚡ **High Concurrency Go Architecture:** Powered by `go-chi/chi/v5` and `pgx/v5` connection pooling for lightning-fast database interactions.
+* 🔐 **Cross-Domain JWT Auth:** Validates and decodes sessions shared across platform services.
+* 📚 **Interactive Swagger API Docs:** Built-in OpenAPI / Swagger specification and interactive explorer available for local development.
+* 🐳 **Containerized & Production Ready:** Multi-stage minimal Alpine Docker container.
+* 🛡️ **CORS & Rate Limiting:** Configurable multi-origin CORS middleware and security headers.
 
 ---
 
-## 💼 For Founders & Startups: Micro-Task Velocity
+## 🛠️ Tech Stack
 
-Need a quick feature built or a bug squashed, but don't want to hire a full-time freelancer?
+* **Language:** [Go 1.24+](https://go.dev/)
+* **HTTP Router:** [Chi v5](https://github.com/go-chi/chi) (`github.com/go-chi/chi/v5`)
+* **Database Driver:** [pgx v5](https://github.com/jackc/pgx) (`github.com/jackc/pgx/v5`)
+* **Authentication:** [golang-jwt](https://github.com/golang-jwt/jwt) (`github.com/golang-jwt/jwt/v5`)
+* **API Documentation:** [Swagger / Swaggo](https://github.com/swaggo/http-swagger) (`http-swagger/v2`)
+* **Environment Configuration:** [godotenv](https://github.com/joho/godotenv)
 
-* ⚡ **Ship in Hours, Not Weeks:** Post highly scoped micro-tasks (30 minutes to 4 hours) with a fixed budget and get matched with verified talent instantly.
-* 🤖 **AI-Assisted Quality:** Every submission goes through a automated suite of checks and a deep AI code review powered by Claude before it ever hits your dashboard. You review a clean, plain-English summary of the changes.
-* 🔒 **Escrow Protection:** Deposit the task budget safely. Funds are only released to the developer once you review and approve their work.
+---
+
+## 🚀 Getting Started Locally
+
+### Prerequisites
+* **Go:** `v1.24.x` or higher installed
+* **PostgreSQL:** Running PostgreSQL database
+* **Docker** *(Optional)*: For containerized testing
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/forke-org/forke-backend.git
+cd forke-backend
+```
+
+### 2. Download Go dependencies
+```bash
+go mod download
+```
+
+### 3. Configure environment variables
+Create a `.env` file from the provided example:
+```bash
+cp .env.example .env
+```
+
+Ensure your `.env` contains:
+```env
+# Server Port and Environment
+PORT=8080
+APP_ENV=development
+
+# Database Connection (pgx connection string)
+DATABASE_URL=postgres://forke:forke_secret@localhost:5433/forke_dev?sslmode=disable
+
+# JWT Secret for cross-domain auth
+JWT_SECRET=forke-jwt-super-secret-key-replace-in-production
+
+# Cookie Domain (localhost for development)
+COOKIE_DOMAIN=localhost
+
+# Allowed CORS Origins
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+```
+
+### 4. Run the Go Server
+
+#### Option A: Direct Go Run
+```bash
+go run ./cmd/api
+```
+
+#### Option B: Build and Execute Binary
+```bash
+go build -o bin/server ./cmd/api
+./bin/server
+```
+
+#### Option C: Run with Docker
+```bash
+docker build -t forke-backend .
+docker run -p 8080:8080 --env-file .env forke-backend
+```
+
+---
+
+## 📖 API Documentation & Swagger
+
+Once the server is running locally, access the interactive Swagger documentation at:
+👉 **`http://localhost:8080/swagger/index.html`**
+
+To regenerate Swagger documentation after modifying endpoint annotations:
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init -g cmd/api/main.go -o docs
+```
+
+---
+
+## 📂 Project Structure
+
+```
+forke-backend/
+├── cmd/
+│   └── api/          # Application entrypoint (main.go, router setup, server boot)
+├── docs/             # Swagger generated documentation (docs.go, swagger.json, swagger.yaml)
+├── internal/         # Private application packages (handlers, middleware, database, models)
+├── public/           # Static branding assets and images
+├── Dockerfile        # Production multi-stage Docker build
+├── go.mod            # Go dependencies and version declaration
+├── go.sum            # Checksums for Go modules
+└── ...
+```
 
 ---
 
 ## 🍊 Meet Forky!
 
-**Forky** is Forke's official mascot—a mischievous, chibi orange creature who supports you throughout your entire developer journey! He reacts dynamically to what you do on the platform:
-
 <p align="center">
-  <img src="./public/forke-assets/forky-reactions/locked_in_forky.png" width="180" alt="Locked In Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./public/forke-assets/forky-reactions/grind_mode_forky.png" width="180" alt="Grind Mode Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./public/forke-assets/forky-reactions/loot_goblin_forky.png" width="180" alt="Loot Goblin Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./public/forke-assets/forky-reactions/confused_forky.png" width="180" alt="Confused Forky" />
-</p>
-
----
-
-## ✨ Get Started Today
-
-* 🛠️ **Want to build & earn?** Sign up as a **Developer**, connect your GitHub, and claim your first micro-task.
-* 🚀 **Want to delegate & ship?** Apply as a **Client**, post a scoped task, and watch top-tier developers solve it in record time.
-
----
-
-<p align="center">
-  <b>Prove skill by shipping. Your profile is your reputation.</b>
+  <img src="./public/forke-assets/forky-reactions/locked_in_forky.png" width="160" alt="Locked In Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./public/forke-assets/forky-reactions/grind_mode_forky.png" width="160" alt="Grind Mode Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./public/forke-assets/forky-reactions/loot_goblin_forky.png" width="160" alt="Loot Goblin Forky" /> &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./public/forke-assets/forky-reactions/confused_forky.png" width="160" alt="Confused Forky" />
 </p>
 
 ---
