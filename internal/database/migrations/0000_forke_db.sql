@@ -343,3 +343,21 @@ CREATE TABLE IF NOT EXISTS auth_events (
     user_agent TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+-- 23. Changelogs Table (Linear / Supermemory style)
+CREATE TABLE IF NOT EXISTS changelogs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    tag TEXT NOT NULL DEFAULT 'CORE',
+    description TEXT NOT NULL,
+    improvements JSONB DEFAULT '[]'::jsonb,
+    fixes JSONB DEFAULT '[]'::jsonb,
+    media_type TEXT NOT NULL DEFAULT 'none',
+    media_url TEXT,
+    is_published BOOLEAN NOT NULL DEFAULT true,
+    published_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
