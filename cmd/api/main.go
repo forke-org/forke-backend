@@ -91,6 +91,8 @@ func main() {
 	})
 	r.Get("/health", handlers.HealthCheck)
 	r.Get("/api/v1/health", handlers.HealthCheck)
+	r.Get("/system/telemetry", handlers.SystemTelemetry)
+	r.Get("/api/v1/system/telemetry", handlers.SystemTelemetry)
 
 	// Swagger Docs Endpoint (only mounted if EnableSwagger is true)
 	if cfg.EnableSwagger {
