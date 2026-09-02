@@ -151,7 +151,58 @@ CREATE TABLE IF NOT EXISTS sandbox_repos (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 8. Tasks Table
+-- 8. Developer Forks (Developers who fork sandbox repos)
+CREATE TABLE IF NOT EXISTS developer_forks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    github_username TEXT NOT NULL,
+    sandbox_repo TEXT NOT NULL,
+    fork_url TEXT NOT NULL,
+    pr_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- 9. Baseline Snapshots (Deterministic health check of base branch)
+CREATE TABLE IF NOT EXISTS baseline_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sandbox_repo_id UUID NOT NULL REFERENCES sandbox_repos(id) ON DELETE CASCADE,
+    branch TEXT NOT NULL,
+    commit_sha TEXT NOT NULL,
+    tech_stack TEXT,
+    results TEXT,
+    ai_summary TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- 10. Code Reviews (Unified automated and AI code reviews)
+CREATE TABLE IF NOT EXISTS code_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sandbox_repo_id UUID NOT NULL REFERENCES sandbox_repos(id) ON DELETE CASCADE,
+    developer_fork_id UUID REFERENCES developer_forks(id) ON DELETE CASCADE,
+    pr_number INTEGER,
+    commit_sha TEXT NOT NULL,
+    baseline_snapshot_id UUID REFERENCES baseline_snapshots(id) ON DELETE SET NULL,
+    results TEXT,
+    comparison TEXT,
+    verdict TEXT,
+    report_html TEXT,
+    ai_verdict TEXT,
+    ai_score INTEGER,
+    requirement_match TEXT,
+    ai_summary TEXT,
+    ai_strengths TEXT,
+    ai_issues TEXT,
+    ai_risks TEXT,
+    unauthorized_edits TEXT,
+    resolved_issues TEXT,
+    resolved_risks TEXT,
+    risk_score INTEGER,
+    risk_routing TEXT,
+    ai_model TEXT,
+    tokens_used INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- 11. Tasks Table
 CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -160,8 +211,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     currency TEXT NOT NULL DEFAULT 'INR',
     status task_status NOT NULL DEFAULT 'open',
     skill_tags TEXT[],
-    client_id UUID NOT NULL REFERENCES users(id),
-    claimant_id UUID REFERENCES users(id),
+    client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    claimant_id UUID REFERENCES users(id) ON DELETE SET NULL,
     claimed_at TIMESTAMP WITH TIME ZONE,
     deadline TIMESTAMP WITH TIME ZONE,
     sandbox_repo_id UUID REFERENCES sandbox_repos(id) ON DELETE SET NULL,
@@ -172,11 +223,11 @@ CREATE TABLE IF NOT EXISTS tasks (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 9. Submissions Table
+-- 12. Submissions Table
 CREATE TABLE IF NOT EXISTS submissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL REFERENCES tasks(id),
-    developer_id UUID NOT NULL REFERENCES users(id),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    developer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     github_link TEXT NOT NULL,
     note TEXT,
     status submission_status NOT NULL DEFAULT 'pending',
@@ -184,24 +235,24 @@ CREATE TABLE IF NOT EXISTS submissions (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 10. Escrow Table
+-- 13. Escrow Table
 CREATE TABLE IF NOT EXISTS escrow (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL UNIQUE REFERENCES tasks(id),
+    task_id UUID NOT NULL UNIQUE REFERENCES tasks(id) ON DELETE CASCADE,
     amount INTEGER NOT NULL,
     status escrow_status NOT NULL DEFAULT 'held',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 11. Revision Requests Table
+-- 14. Revision Requests Table
 CREATE TABLE IF NOT EXISTS revision_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL REFERENCES tasks(id),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     client_note TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 12. Support Enquiries Table
+-- 15. Support Enquiries Table
 CREATE TABLE IF NOT EXISTS support_enquiries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name TEXT NOT NULL,
@@ -215,7 +266,7 @@ CREATE TABLE IF NOT EXISTS support_enquiries (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 13. Subscribers Table
+-- 16. Subscribers Table
 CREATE TABLE IF NOT EXISTS subscribers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL UNIQUE,
@@ -224,14 +275,14 @@ CREATE TABLE IF NOT EXISTS subscribers (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 14. System Settings Table
+-- 17. System Settings Table
 CREATE TABLE IF NOT EXISTS system_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 15. Admin Audit Log Table
+-- 18. Admin Audit Log Table
 CREATE TABLE IF NOT EXISTS admin_audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_id UUID,
@@ -243,7 +294,7 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 16. Backup Runs Table
+-- 19. Backup Runs Table
 CREATE TABLE IF NOT EXISTS backup_runs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -256,7 +307,7 @@ CREATE TABLE IF NOT EXISTS backup_runs (
     error_message TEXT
 );
 
--- 17. Developers Profile Table
+-- 20. Developers Profile Table
 CREATE TABLE IF NOT EXISTS developers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -273,7 +324,7 @@ CREATE TABLE IF NOT EXISTS developers (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 18. Messages Table
+-- 21. Messages Table
 CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -286,7 +337,7 @@ CREATE TABLE IF NOT EXISTS messages (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 19. Notifications Table
+-- 22. Notifications Table
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -298,7 +349,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 20. Blogs Table
+-- 23. Blogs Table
 CREATE TABLE IF NOT EXISTS blogs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     author_id UUID REFERENCES admins(id) ON DELETE SET NULL,
@@ -317,7 +368,7 @@ CREATE TABLE IF NOT EXISTS blogs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 21. Page Visits (In-House First-Party Analytics)
+-- 24. Page Visits (In-House First-Party Analytics)
 CREATE TABLE IF NOT EXISTS page_visits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT,
@@ -331,7 +382,7 @@ CREATE TABLE IF NOT EXISTS page_visits (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 22. Auth Security Events
+-- 25. Auth Security Events
 CREATE TABLE IF NOT EXISTS auth_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -344,7 +395,7 @@ CREATE TABLE IF NOT EXISTS auth_events (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- 23. Changelogs Table (Linear / Supermemory style)
+-- 26. Changelogs Table (Linear / Supermemory style)
 CREATE TABLE IF NOT EXISTS changelogs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -360,4 +411,52 @@ CREATE TABLE IF NOT EXISTS changelogs (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+-- 27. Broadcast Approvals Table (Zero-Auto-Send Queue for Newsletters & Release Emails)
+CREATE TABLE IF NOT EXISTS broadcast_approvals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type TEXT NOT NULL,
+    content_id UUID NOT NULL,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    tag TEXT,
+    excerpt TEXT,
+    description TEXT,
+    cover_image TEXT,
+    media_url TEXT,
+    media_type TEXT DEFAULT 'none',
+    author_name TEXT,
+    reading_minutes INTEGER,
+    improvements JSONB DEFAULT '[]'::jsonb,
+    fixes JSONB DEFAULT '[]'::jsonb,
+    status TEXT NOT NULL DEFAULT 'pending',
+    broadcast_id TEXT,
+    sent_count INTEGER DEFAULT 0,
+    error TEXT,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    approved_by TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_broadcast_approvals_content_id ON broadcast_approvals(content_id);
+CREATE INDEX IF NOT EXISTS idx_broadcast_approvals_status ON broadcast_approvals(status);
+
+-- 28. SQL Query Requests Table (Safe Two-Person Rule for Destructive SQL Console Queries)
+CREATE TABLE IF NOT EXISTS sql_query_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    requester_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+    query_text TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    reviewed_by UUID REFERENCES admins(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITHOUT TIME ZONE,
+    rejection_reason TEXT,
+    execution_duration_ms INTEGER,
+    execution_results JSONB,
+    execution_error TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_sql_query_requests_status ON sql_query_requests(status);
+CREATE INDEX IF NOT EXISTS idx_sql_query_requests_requester ON sql_query_requests(requester_id);
 
