@@ -27,8 +27,8 @@ jobs:
       - name: Deploy Binary to Oracle VM
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: 140.238.162.247
-          username: ubuntu
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
           key: ${{ secrets.ORACLE_SSH_KEY }}
           source: "forke-backend"
           target: "/tmp"
@@ -36,8 +36,8 @@ jobs:
       - name: Restart forke-backend Service
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 140.238.162.247
-          username: ubuntu
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
           key: ${{ secrets.ORACLE_SSH_KEY }}
           script: |
             sudo mv /tmp/forke-backend /opt/forke-backend/forke-backend
