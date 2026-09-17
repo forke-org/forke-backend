@@ -1,0 +1,41 @@
+# /opt/forke/docker/Dockerfile.runner
+# Multi-Language Security Sandbox for Forke Review Runner (ARM64 & x86_64 Native)
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_ENV=development
+
+# Install base toolchains
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    python3 \
+    python3-pip \
+    python3-venv \
+    golang-go \
+    jq \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20 LTS & package managers
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pnpm yarn bun prettier eslint typescript semgrep
+
+# Pre-install Python testing & SAST tools
+RUN pip3 install --no-cache-dir flake8 ruff mypy pytest bandit pip-audit black
+
+# Create unprivileged runner user (UID 1000)
+RUN useradd -m -u 1000 -s /bin/bash runner
+
+# Configure workspace mount
+WORKDIR /workspace
+RUN chown -R runner:runner /workspace
+
+USER runner
+
+COPY --chown=runner:runner entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

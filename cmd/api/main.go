@@ -37,6 +37,8 @@ import (
 	"github.com/forke/forke-backend/internal/database"
 	"github.com/forke/forke-backend/internal/handlers"
 	"github.com/forke/forke-backend/internal/middleware"
+	"github.com/forke/forke-backend/internal/queue"
+	"github.com/forke/forke-backend/internal/sandbox"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -102,10 +104,15 @@ func main() {
 	}
 
 	if db != nil {
+		sm := sandbox.NewSandboxManager("", "")
+		reviewQueue := queue.NewReviewQueue(db, sm, 2)
+		defer reviewQueue.Close()
+
 		authHandler := handlers.NewAuthHandler(db, cfg)
 		workspaceHandler := handlers.NewWorkspaceHandler(db)
 		blogHandler := handlers.NewBlogHandler(db)
 		adminHandler := handlers.NewAdminHandler(db)
+		reviewHandler := handlers.NewReviewHandler(db, reviewQueue, sm)
 
 		// Public API Routes
 		r.Route("/api/v1", func(r chi.Router) {
@@ -146,6 +153,15 @@ func main() {
 
 				r.Get("/stats", adminHandler.GetStats)
 				r.Get("/users", adminHandler.ListUsers)
+			})
+
+			// Automated Code Verification & AI Review Pipeline
+			r.Route("/reviews", func(r chi.Router) {
+				r.Post("/trigger", reviewHandler.TriggerReview)
+				r.Get("/{jobId}/status", reviewHandler.GetJobStatus)
+				r.Get("/pr", reviewHandler.GetPRReview)
+				r.Post("/cancel", reviewHandler.CancelReview)
+				r.Post("/baseline", reviewHandler.CreateBaseline)
 			})
 		})
 	}
