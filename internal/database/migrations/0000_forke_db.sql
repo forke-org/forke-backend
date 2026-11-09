@@ -275,6 +275,27 @@ CREATE TABLE IF NOT EXISTS subscribers (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+-- Subscriber lifecycle, mirrored from Forke Mail contact webhooks
+ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS status_reason TEXT;
+ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS paused_until TIMESTAMP WITH TIME ZONE;
+ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS topics_opted_out TEXT[] NOT NULL DEFAULT '{}';
+DO $$ BEGIN
+    ALTER TABLE subscribers ADD CONSTRAINT subscribers_status_check
+        CHECK (status IN ('active', 'unsubscribed', 'bounced', 'complained', 'invalid'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+CREATE UNIQUE INDEX IF NOT EXISTS subscribers_email_lower_key ON subscribers (lower(email));
+CREATE INDEX IF NOT EXISTS subscribers_status_idx ON subscribers (status);
+
+-- Forke Mail webhook deliveries already applied (replay protection)
+CREATE TABLE IF NOT EXISTS forke_mail_webhook_deliveries (
+    delivery_id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 -- 17. System Settings Table
 CREATE TABLE IF NOT EXISTS system_settings (
     key TEXT PRIMARY KEY,
