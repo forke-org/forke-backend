@@ -93,8 +93,8 @@ func main() {
 	})
 	r.Get("/health", handlers.HealthCheck)
 	r.Get("/api/v1/health", handlers.HealthCheck)
-	r.Get("/system/telemetry", handlers.SystemTelemetry)
-	r.Get("/api/v1/system/telemetry", handlers.SystemTelemetry)
+	r.With(middleware.RequireInternalToken(cfg.InternalAPIToken)).Get("/system/telemetry", handlers.SystemTelemetry)
+	r.With(middleware.RequireInternalToken(cfg.InternalAPIToken)).Get("/api/v1/system/telemetry", handlers.SystemTelemetry)
 
 	// Swagger Docs Endpoint (only mounted if EnableSwagger is true)
 	if cfg.EnableSwagger {
@@ -157,6 +157,7 @@ func main() {
 
 			// Automated Code Verification & AI Review Pipeline
 			r.Route("/reviews", func(r chi.Router) {
+				r.Use(middleware.RequireInternalToken(cfg.InternalAPIToken))
 				r.Post("/trigger", reviewHandler.TriggerReview)
 				r.Get("/{jobId}/status", reviewHandler.GetJobStatus)
 				r.Get("/pr", reviewHandler.GetPRReview)

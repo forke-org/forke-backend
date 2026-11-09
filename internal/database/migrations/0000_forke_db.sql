@@ -133,6 +133,10 @@ CREATE TABLE IF NOT EXISTS sandbox_users (
     role TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+-- GitHub tokens are stored AES-GCM encrypted; this hash is the lookup key
+ALTER TABLE sandbox_users ADD COLUMN IF NOT EXISTS access_token_hash TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS sandbox_users_access_token_hash_key ON sandbox_users (access_token_hash);
+
 
 -- 7. Sandbox Repos
 CREATE TABLE IF NOT EXISTS sandbox_repos (
@@ -295,6 +299,16 @@ CREATE TABLE IF NOT EXISTS forke_mail_webhook_deliveries (
     event_type TEXT NOT NULL,
     received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+-- Admin login sessions (only a SHA-256 of the random cookie token is stored)
+CREATE TABLE IF NOT EXISTS admin_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+CREATE INDEX IF NOT EXISTS admin_sessions_expires_idx ON admin_sessions (expires_at);
 
 -- 17. System Settings Table
 CREATE TABLE IF NOT EXISTS system_settings (

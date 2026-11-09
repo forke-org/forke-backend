@@ -7,6 +7,7 @@ package middleware
 
 import (
 	"context"
+	"crypto/subtle"
 	"net/http"
 	"strings"
 
@@ -65,7 +66,7 @@ func RequireAuth(jwtSecret string) func(http.Handler) http.Handler {
 			claims := &JWTClaims{}
 			token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 				return []byte(jwtSecret), nil
-			})
+			}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 			if err != nil || !token.Valid {
 				http.Error(w, `{"error":"unauthorized","message":"invalid or expired token"}`, http.StatusUnauthorized)
@@ -87,4 +88,20 @@ func RequireAdminRole(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// RequireInternalToken protects server-to-server endpoints (review queue,
+// host telemetry). Callers send "Authorization: Bearer <INTERNAL_API_TOKEN>".
+// With no token configured every request is refused (fail closed).
+func RequireInternalToken(expected string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			got := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+			if expected == "" || subtle.ConstantTimeCompare([]byte(got), []byte(expected)) != 1 {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }

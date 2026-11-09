@@ -21,6 +21,8 @@ type Config struct {
 	CORSOrigins   []string
 	AppEnv        string
 	EnableSwagger bool
+	// Shared secret for server-to-server calls (review queue, telemetry).
+	InternalAPIToken string
 }
 
 func Load() *Config {
@@ -46,16 +48,21 @@ func Load() *Config {
 		corsOrigins[i] = strings.TrimSpace(corsOrigins[i])
 	}
 
+	if appEnv == "production" && (jwtSecret == "" || jwtSecret == "forke-super-secret-jwt-key-change-in-prod" || len(jwtSecret) < 32) {
+		log.Fatal("[Config] JWT_SECRET must be set to a strong value (32+ chars) in production")
+	}
+
 	log.Printf("[Config] Loaded environment: %s, Port: %s, Swagger: %v", appEnv, port, enableSwagger)
 
 	return &Config{
-		Port:          port,
-		DatabaseURL:   dbURL,
-		JWTSecret:     jwtSecret,
-		CookieDomain:  cookieDomain,
-		CORSOrigins:   corsOrigins,
-		AppEnv:        appEnv,
-		EnableSwagger: enableSwagger,
+		Port:             port,
+		DatabaseURL:      dbURL,
+		JWTSecret:        jwtSecret,
+		CookieDomain:     cookieDomain,
+		CORSOrigins:      corsOrigins,
+		AppEnv:           appEnv,
+		EnableSwagger:    enableSwagger,
+		InternalAPIToken: getEnv("INTERNAL_API_TOKEN", ""),
 	}
 }
 

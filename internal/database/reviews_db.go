@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/forke/forke-backend/internal/tokencrypt"
 
 	"github.com/forke/forke-backend/internal/models"
 	"github.com/jackc/pgx/v5"
@@ -113,7 +114,7 @@ func (db *DB) GetSandboxOwnerToken(ctx context.Context, ownerID string) (string,
 		}
 		return "", fmt.Errorf("failed to query sandbox_users: %w", err)
 	}
-	return token, nil
+	return tokencrypt.Decrypt(token)
 }
 
 // GetLatestBaselineSnapshot retrieves the most recent baseline snapshot for a sandbox
