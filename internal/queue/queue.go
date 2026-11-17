@@ -395,7 +395,7 @@ func (q *ReviewQueue) processReview(ctx context.Context, job *models.ReviewJob) 
 	ghDesc := fmt.Sprintf("Forke Score: %d/100 (%s)", finalScore, finalVerdict)
 	if finalVerdict == "high_risk" {
 		ghState = "failure"
-		ghDesc = fmt.Sprintf("Forke: High Risk (%d/100) — Build/Tests Failed", finalScore)
+		ghDesc = fmt.Sprintf("Forke: High Risk (%d/100): Build/Tests Failed", finalScore)
 	} else if finalVerdict == "needs_changes" {
 		ghState = "failure"
 		ghDesc = fmt.Sprintf("Forke: Changes Required (%d/100)", finalScore)

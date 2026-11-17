@@ -70,7 +70,7 @@ func (g *GeminiClient) RunReview(ctx context.Context, reviewCtx ReviewContext) (
 			Verdict:          "pass",
 			Score:            85,
 			RequirementMatch: 0.85,
-			Summary:          "Automated review completed. (Gemini API key not configured — fallback heuristic evaluation applied).",
+			Summary:          "Automated review completed. (Gemini API key not configured, fallback heuristic evaluation applied).",
 			Strengths:        []string{"Passed deterministic verification suite.", "Clean PR structure."},
 			Issues:           []models.AIIssue{},
 			Risks:            []models.AIRisk{},
