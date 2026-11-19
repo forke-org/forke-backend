@@ -92,6 +92,10 @@ func main() {
 		_ = json.NewEncoder(w).Encode(res)
 	})
 	r.Get("/health", handlers.HealthCheck)
+	// Every /status on Forke's domains goes to the one public status page.
+	r.Get("/status", func(w http.ResponseWriter, req *http.Request) {
+		http.Redirect(w, req, "https://status.forke.space/?tab=api", http.StatusFound)
+	})
 	r.Get("/api/v1/health", handlers.HealthCheck)
 	r.With(middleware.RequireInternalToken(cfg.InternalAPIToken)).Get("/system/telemetry", handlers.SystemTelemetry)
 	r.With(middleware.RequireInternalToken(cfg.InternalAPIToken)).Get("/api/v1/system/telemetry", handlers.SystemTelemetry)
