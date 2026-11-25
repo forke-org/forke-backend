@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Deploys build in one folder on the server, so they run one at a time instead of clashing.
+concurrency:
+  group: deploy-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Build & Deploy Backend
